@@ -14,7 +14,7 @@ def import_users():
         return pickle.load(file)
 
 class User():
-    def __init__(self, user_name, first_name, last_name, password, role=[]):
+    def init(self, user_name, first_name, last_name, password, role=[]):
         self.id = 0
         self.user_name = user_name
         self.first_name = first_name
