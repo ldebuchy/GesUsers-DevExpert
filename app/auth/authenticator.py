@@ -66,7 +66,7 @@ def get_token(workspace_name, user_name, password, permanent=False):
     # Attribution d'une date de création et d'expiration au token
     creation_date = str(time.time())
     if permanent:
-        expiration_date = str(time.time() + (30*86400)) # 30 jours de validité 
+        expiration_date = str(time.time() + (30*86400)) # 30 jours de validité
     else:
         expiration_date = str(time.time() + 600) # Une heure de validité
 
