@@ -9,7 +9,7 @@ import sys
 
 
 class User():
-    def init(self, user_name, first_name, last_name, password, role=[]):
+    def __init__(self, user_name, first_name, last_name, password, role=[]):
         self.id = 0
         self.__user_name = user_name
         self.__first_name = first_name
@@ -17,16 +17,14 @@ class User():
         self.__password = password
         self.__suspended = False
         self.__role = []
-        
-    def get_info(self, var):
+
+    def get(self, var):
         if var =="user_name":
             return self.__user_name
         elif var =="first_name":
             return self.__first_name
         elif var =="last_name":
             return self.__last_name
-        elif var =="password":
-            return self.__password
         elif var =="suspended":
             return self.__suspended
         elif var =="role":
@@ -36,4 +34,4 @@ class User():
 
 jhon = User("jdoe", "Jhon", "Doe", "123456")
 
-print(jhon)
+print(jhon.get("user_name"))
