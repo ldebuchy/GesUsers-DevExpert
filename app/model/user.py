@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+import os
+import sys
+sys.path.insert(1, f'{os.path.dirname(__file__)}/../../app')
+
 import pickle
+
 
 # export des données dans le fichier users.pickl
 def export_users(data):
@@ -10,11 +15,11 @@ def export_users(data):
 
 # import des données depuis le fichier users.pickle
 def import_users():
-    with open("users.pickle", "rb") as file:
+    with open("/users.pickle", "rb") as file:
         return pickle.load(file)
 
 class User():
-    def init(self, user_name, first_name, last_name, password, role=[]):
+    def __init__(self, user_name, first_name, last_name, password, role=[]):
         self.id = 0
         self.user_name = user_name
         self.first_name = first_name
@@ -36,10 +41,13 @@ class User():
             return self.role
         
 def get_user(id):
-    return import_users()[str(id)]
+    try:
+        return import_users()[str(id)]
+    except KeyError:
+        return "Cet utilisateur n'existe pas."
 
 def create_user(user_id,user_name,first_name,last_name,password):
-        import_users().update({f"{user_id}":User(user_name,first_name,last_name,password)})
+    import_users().update({str(user_id):User(user_name,first_name,last_name,password)})
 
 def delete_user(user_id):
-    import_users().pop(f"{user_id}")
+    import_users().pop(str(user_id))
