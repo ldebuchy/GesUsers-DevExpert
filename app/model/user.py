@@ -3,24 +3,28 @@
 
 import os
 import sys
-sys.path.insert(1, f'{os.path.dirname(__file__)}/../../app')
+from random import randint
 
 import pickle
+
+sys.path.insert(1, f'{os.path.dirname(__file__)}/../../data')
 
 
 # export des données dans le fichier users.pickl
 def export_users(data):
-    with open("users.pickle", "wb") as file:
+    with open("data/users.pickle", "wb") as file:
         pickle.dump(data, file)
 
 # import des données depuis le fichier users.pickle
 def import_users():
-    with open("/users.pickle", "rb") as file:
+    with open("data/users.pickle", "rb") as file:
         return pickle.load(file)
 
 class User():
-    def __init__(self, user_name, first_name, last_name, password, role=[]):
-        self.id = 0
+    def __init__(self, user_name, first_name, last_name, password):
+        self.id = randint(100, 999)
+        while self.id in import_users():
+            self.id = randint(100, 999)
         self.user_name = user_name
         self.first_name = first_name
         self.last_name = last_name
@@ -46,8 +50,17 @@ def get_user(id):
     except KeyError:
         return "Cet utilisateur n'existe pas."
 
-def create_user(user_id,user_name,first_name,last_name,password):
-    import_users().update({str(user_id):User(user_name,first_name,last_name,password)})
+def create_user(user_name, first_name, last_name, password):
+    new_user = User(user_name, first_name, last_name, password)
+    users = import_users()
+    users.update({new_user.id: new_user})
+    export_users(users)
 
 def delete_user(user_id):
-    import_users().pop(str(user_id))
+    users = import_users()
+    try:
+        users.pop(user_id)
+        export_users(users)
+    except KeyError:
+        pass
+
