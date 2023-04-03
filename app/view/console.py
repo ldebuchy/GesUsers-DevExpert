@@ -39,9 +39,9 @@ class Console:
                 input_type = 'text'
                 break
 
-        submitted_input = self.request_input(type=input_type, msg='Please enter a key to navigate:\n')
-        if not submitted_input in valid_input:
-            self.set_menu(menu, f'{display.md.RED}Invalid choice, please try again.')
+        submitted_input = self.request_input(type=input_type, msg='Please enter a key to navigate:')
+        if input_type is "choice" and not submitted_input.lower() in valid_input:
+            self.set_message(f'{display.md.RED}Invalid choice, please try again.')
             return
 
         self.interpret_choice(menu_data, submitted_input)
@@ -97,7 +97,7 @@ class Console:
     def add_field(self, menu, title='', text=''):
         if menu == {}:
             menu = {
-                'title': 'DevExpert',
+                'title': 'DevExpert administration console',
                 'fields': []
             }
         menu['fields'].append({
@@ -141,20 +141,22 @@ class Console:
 
         if users != {}:
             menu = self.add_field(menu, title='User list', text='')
-            key_index = 0
-            for user in users:
+            key_index = 1
+            for user_id, user_data in users.items():
+                menu = self.add_option(menu, 0, name=user_data['first_name'] + ' ' + user_data['last_name'], key=str(key_index), action=lambda user_id=user_id: self.set_menu(lambda: self.user_menu(user_id)))
                 key_index += 1
-                print(user)
-                menu = self.add_option(menu, 0, name=users[user]['first_name']+' '+users[user]['last_name'], key=key_index, action=lambda:self.set_menu(lambda:self.user_menu(users[user]['id'])))
         else:
             menu = self.add_field(menu, title='User list', text='No user found.')
+
         menu = self.add_field(menu, title='', text='')
         menu = self.add_option(menu, 1, name='Back', key='b', action=lambda:self.previous_menu())
         return menu
 
     # Menu d'utilisateur
     def user_menu(self, user_id, menu={}):
-        menu = self.add_field(menu, title='User menu', text='In build sorry')
+        user = data.get_user(user_id)
+        menu = self.add_field(menu, title=user['first_name']+' '+user['last_name'], text="ID: "+str(user['id']))
+
         menu = self.add_field(menu, title='', text='')
         menu = self.add_option(menu, 1, name='Back', key='b', action=lambda:self.previous_menu())
         return menu
