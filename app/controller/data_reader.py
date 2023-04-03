@@ -6,6 +6,20 @@ import sys
 sys.path.insert(1, f'{os.path.dirname(__file__)}/../../app')
 import model.user as udata
 
+# Fonction qui retourne un dictionnaire contenant les informations d'un utilisateur
+def get_user(id):
+    return convert_user_to_dict(udata.import_users()[id])
+
+# Fonction qui retourne un dictionnaire contenant tous les utilisateurs et leurs informations
+def get_user_list():
+    users = udata.import_users()
+    user_list = {}
+
+    for user in users:
+        user_list.update({users[user].id: convert_user_to_dict(users[user])})
+        
+    return user_list
+
 # Fonction qui convertie un objet User en dictionnaire
 def convert_user_to_dict(user):
     return {
@@ -16,12 +30,3 @@ def convert_user_to_dict(user):
         "suspended": user.suspended,
         "role": user.role
     }
-
-def get_user_list():
-    users = udata.import_users()
-    user_list = {}
-    
-    for user in users:
-        user_list.update({users[user].id: convert_user_to_dict(users[user])})
-        
-    return user_list

@@ -4,11 +4,11 @@
 import os
 import msvcrt
 
-display_width = 50
+display_width = 60
 
 def show_menu(menu,msg=""):
     os.system("cls")
-    print(f"\n=== {md.BOLD}" + menu['title'].upper() + f"{md.END} " + "="*(display_width-8-len(menu['title'].upper())) + "===")
+    print(f"\n--- {md.BOLD}" + menu['title'].upper() + f"{md.END} " + "-"*(display_width-8-len(menu['title'].upper())) + "---")
     
     for option_field in menu['fields']:
         if option_field['title'] != "":

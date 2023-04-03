@@ -43,12 +43,6 @@ class User():
             return self.suspended
         elif var =="role":
             return self.role
-        
-def get_user(id):
-    try:
-        return import_users()[str(id)]
-    except KeyError:
-        return "Cet utilisateur n'existe pas."
 
 def create_user(user_name, first_name, last_name, password):
     new_user = User(user_name, first_name, last_name, password)
@@ -63,4 +57,3 @@ def delete_user(user_id):
         export_users(users)
     except KeyError:
         pass
-
