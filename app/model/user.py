@@ -21,14 +21,14 @@ def import_users():
         return pickle.load(file)
 
 class User():
-    def __init__(self, user_name, first_name, last_name, password,role):
+    def __init__(self, first_name, last_name, password, role=[]):
         self.id = randint(100, 999)
         while self.id in import_users():
             self.id = randint(100, 999)
-        self.user_name = user_name
+        self.user_name = first_name[0] + last_name
+        self.password = password
         self.first_name = first_name
         self.last_name = last_name
-        self.password = password
         self.suspended = False
         self.role = role
 
@@ -44,10 +44,10 @@ class User():
         elif var =="role":
             return self.role
 
-def create_user(user_name, first_name, last_name, password, role):
+def create_user(first_name, last_name, password, role):
     if "create_user" not in role.permissions:
         return "Error: User does not have permission to create user."
-    new_user = User(user_name, first_name, last_name, password, role)
+    new_user = User(first_name, last_name, password, role)
     users = import_users()
     users.update({new_user.id: new_user})
     export_users(users)
