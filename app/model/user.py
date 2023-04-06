@@ -21,7 +21,7 @@ def import_users():
         return pickle.load(file)
 
 class User():
-    def __init__(self, user_name, first_name, last_name, password):
+    def __init__(self, user_name, first_name, last_name, password,role):
         self.id = randint(100, 999)
         while self.id in import_users():
             self.id = randint(100, 999)
@@ -30,7 +30,7 @@ class User():
         self.last_name = last_name
         self.password = password
         self.suspended = False
-        self.role = []
+        self.role = role
 
     def get(self, var):
         if var =="user_name":
@@ -44,16 +44,37 @@ class User():
         elif var =="role":
             return self.role
 
-def create_user(user_name, first_name, last_name, password):
-    new_user = User(user_name, first_name, last_name, password)
+def create_user(user_name, first_name, last_name, password, role):
+    if "create_user" not in role.permissions:
+        return "Error: User does not have permission to create user."
+    new_user = User(user_name, first_name, last_name, password, role)
     users = import_users()
     users.update({new_user.id: new_user})
     export_users(users)
 
-def delete_user(user_id):
+def delete_user(user_id, role):
+    if "delete_user" not in role.permissions:
+        return "Error: User does not have permission to delete user."
     users = import_users()
     try:
         users.pop(user_id)
         export_users(users)
     except KeyError:
         pass
+
+def suspend_user(user_id, role):
+    if "suspend_user" not in role.permissions:
+        return "Error: User does not have permission to suspend user."
+    users = import_users()
+    try:
+        user = users[user_id]
+        user.suspended = True
+        export_users(users)
+    except KeyError:
+        pass
+
+def check_permission(self, permission):
+        if self.role is not None:
+            return permission in self.role.permissions
+        else:
+            return False 

@@ -5,6 +5,7 @@ import os
 import sys
 sys.path.insert(1, f'{os.path.dirname(__file__)}/../../app')
 import model.user as udata
+import model.role as rdata
 
 # Fonction qui retourne un dictionnaire contenant les informations d'un utilisateur
 def get_user(id):
