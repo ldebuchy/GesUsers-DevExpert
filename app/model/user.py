@@ -21,7 +21,7 @@ def import_users():
         return pickle.load(file)
 
 class User():
-    def __init__(self, first_name, last_name, password, roles=[]):
+    def __init__(self, first_name, last_name, password, role=[]):
         self.id = randint(100, 999)
         while self.id in import_users():
             self.id = randint(100, 999)
@@ -30,7 +30,7 @@ class User():
         self.first_name = first_name
         self.last_name = last_name
         self.suspended = False
-        self.roles = roles
+        self.role = role
 
     def get(self, var):
         if var =="user_name":
@@ -42,14 +42,7 @@ class User():
         elif var =="suspended":
             return self.suspended
         elif var =="role":
-            return self.roles
-        
-
-    def get_permissions(self, permission):
-        for role in self.role:
-            if permission in role.permissions:
-                return True
-        return False
+            return self.role
 
 def create_user(first_name, last_name, password, role):
     if "create_user" not in role.permissions:
@@ -79,3 +72,9 @@ def suspend_user(user_id, role):
         export_users(users)
     except KeyError:
         pass
+
+def check_permission(self, permission):
+        if self.role is not None:
+            return permission in self.role.permissions
+        else:
+            return False 

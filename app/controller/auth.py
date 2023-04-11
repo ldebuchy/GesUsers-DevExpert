@@ -6,21 +6,25 @@ import sys
 sys.path.insert(1, f'{os.path.dirname(__file__)}/../../app')
 from model.user import *
 
-
 session = None
 
 super_admin_id = "id"
 
 def login(user_name, password):
+    global session
     users = import_users()
     for user in users:
-        if user.user_name == user_name:
-            if user.password == password:
-                session = user.id
-                return user
-        return [True, False]
+        if users[user].user_name == user_name:
+            if users[user].password == password:
+                session = users[user].id
+                return [True, True]
+            else:
+                return [True, False]
     return [False, False]
 
 def logout():
+    global session
     session = None
-    return True
+
+print(login("ldebuchy", "123456"))
+print(session)

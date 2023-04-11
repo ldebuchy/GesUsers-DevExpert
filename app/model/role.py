@@ -72,7 +72,7 @@ def delete_role(role_id):
     except KeyError:
         return "Error: Role does not exist."
 
-# admin = Role("admin", 0, ["administrator"])
+#admin = Role("admin", 0, ["administrator"])
 # hrm = Role("hrm", 20, ["manage_roles", "create_delete_user", "edit_user_names", "reset_passwords", "edit_names", "suspended", "create_delete_documents", "read_documents", "edit_documents", "edit_account"])
 # team_leader = Role("manager", 40, ["edit_user_names", "reset_passwords", "edit_names", "create_delete_documents", "read_documents", "edit_documents", "edit_account"])
 # employee = Role("employee", 80, ["create_delete_documents", "read_documents", "edit_documents", "edit_account"])

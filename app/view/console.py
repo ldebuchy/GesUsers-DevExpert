@@ -29,6 +29,7 @@ class Console:
             self.menu_path.append(menu)
         menu_data = self.menu_path[-1]()
         display.show_menu(menu_data, msg)
+        print(self.menu_path)
 
         input_type = 'choice'
 
@@ -43,7 +44,6 @@ class Console:
         if input_type is "choice" and not submitted_input.lower() in valid_input:
             self.set_message(f'{display.md.RED}Invalid choice, please try again.')
             return
-
         self.interpret_choice(menu_data, submitted_input)
 
     # Retourner au menu précédent
