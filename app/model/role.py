@@ -58,8 +58,22 @@ class Role():
         #* = Effectife uniquement si la priorité du role est structement supérieur au role ou role de l'utilisateur ciblé
         '''
 
-admin = Role("admin", 0, ["administrator"])
-hrm = Role("hrm", 20, ["manage_roles", "create_delete_user", "edit_user_names", "reset_passwords", "edit_names", "suspended", "create_delete_documents", "read_documents", "edit_documents", "edit_account"])
-team_leader = Role("manager", 40, ["edit_user_names", "reset_passwords", "edit_names", "create_delete_documents", "read_documents", "edit_documents", "edit_account"])
-employee = Role("employee", 80, ["create_delete_documents", "read_documents", "edit_documents", "edit_account"])
-internship = Role("internship", 90, ["read_documents"])
+def create_role(name, priority, permissions):
+    new_role = Role(name, priority, permissions)
+    roles = import_roles()
+    roles.update({new_role.id: new_role})
+    export_roles(roles)
+
+def delete_role(role_id):
+    roles = import_roles()
+    try:
+        roles.pop(role_id)
+        export_roles(roles)
+    except KeyError:
+        return "Error: Role does not exist."
+
+# admin = Role("admin", 0, ["administrator"])
+# hrm = Role("hrm", 20, ["manage_roles", "create_delete_user", "edit_user_names", "reset_passwords", "edit_names", "suspended", "create_delete_documents", "read_documents", "edit_documents", "edit_account"])
+# team_leader = Role("manager", 40, ["edit_user_names", "reset_passwords", "edit_names", "create_delete_documents", "read_documents", "edit_documents", "edit_account"])
+# employee = Role("employee", 80, ["create_delete_documents", "read_documents", "edit_documents", "edit_account"])
+# internship = Role("internship", 90, ["read_documents"])

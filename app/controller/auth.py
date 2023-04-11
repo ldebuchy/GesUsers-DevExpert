@@ -20,3 +20,7 @@ def login(user_name, password):
                 return user
         return [True, False]
     return [False, False]
+
+def logout():
+    session = None
+    return True
