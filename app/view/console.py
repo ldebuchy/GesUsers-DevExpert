@@ -8,6 +8,8 @@ sys.path.insert(1, f'{os.path.dirname(__file__)}/../../app')
 
 import view.display as display
 import controller.data_reader as data
+from controller.auth import *
+import controller.auth as auth
 
 class Console:
 
@@ -29,9 +31,9 @@ class Console:
             self.menu_path.append(menu)
         menu_data = self.menu_path[-1]()
         display.show_menu(menu_data, msg)
-        print(self.menu_path)
+        
 
-        input_type = 'choice'
+        input_type = menu_data['input']['input_type']
 
         valid_input = [field['option'][option]['key'] for field in menu_data['fields'] for option in range(len(field['option']))]
         
@@ -40,11 +42,38 @@ class Console:
                 input_type = 'text'
                 break
 
-        submitted_input = self.request_input(type=input_type, msg='Please enter a key to navigate:')
-        if input_type is "choice" and not submitted_input.lower() in valid_input:
+        submitted_input = self.request_input(type=input_type, msg=menu_data['input']['input_text'])
+        if input_type == "choice" and not submitted_input.lower() in valid_input:
             self.set_message(f'{display.md.RED}Invalid choice, please try again.')
             return
-        self.interpret_choice(menu_data, submitted_input)
+        
+        if input_type == "choice":
+            self.interpret_choice(menu_data, submitted_input)
+            return
+        print(self.menu_path)
+
+        # Actions personnalisées pour les menus
+        if menu_data['fields'][0]['title'] == 'Welcome':
+            if menu_data['input']['input_request'] == 'username':
+                self.set_menu(lambda:self.start_menu(username=submitted_input,input_request='password'))
+                return
+            elif menu_data['input']['input_request'] == 'password':
+                login_okay = auth.login(menu_data['input']['username'],submitted_input)
+                if login_okay[0] and login_okay[1]:
+                    self.set_menu(lambda:self.dashboard_menu(),msg=f'{display.md.GREEN}Login successful!')
+                    return
+                elif login_okay[0] and not login_okay[1]:
+                    self.set_menu(lambda:self.start_menu(), msg=f'{display.md.RED}Wrong password, please try again.')
+                    return
+                elif login_okay[0] == False:
+                    self.set_menu(lambda:self.start_menu(), msg=f'{display.md.RED}User not found, please try again.')
+                    return
+                else:
+                    self.set_menu(lambda:self.start_menu(), msg=f'{display.md.RED}Unknown error, please try again.')
+                return
+            else:
+                self.set_message(f'{display.md.RED}Invalid choice, please try again.')
+                return
 
     # Retourner au menu précédent
     def previous_menu(self):
@@ -95,11 +124,19 @@ class Console:
 
     # Fonctions pour créer des champs dans un menu
     def add_field(self, menu, title='', text=''):
-        if menu == {}:
-            menu = {
-                'title': 'DevExpert administration console',
-                'fields': []
+        if menu == None:
+            menu = {}
+        if 'title' not in menu:
+            menu['title'] = 'DevExpert administration console'
+        if 'fields' not in menu:
+            menu['fields'] = []
+        if 'input' not in menu:
+            menu['input'] = {
+                'input_text': 'Please enter a key to navigate:',
+                'input_type': 'choice',
+                'input_request': 'option'
             }
+
         menu['fields'].append({
             'title': title,
             'text': text,
@@ -117,26 +154,48 @@ class Console:
     ### Données des menus ###
 
     # Menu de démarrage
-    def start_menu(self, menu={}):
+    def start_menu(self, menu=None, username='', password='', input_request=''):
         menu = self.add_field(menu, title='Welcome', text='')
-        menu = self.add_option(menu, 0, name='Dev menu', key='1', action=lambda:self.set_menu(lambda:self.dev_menu()))
-        menu = self.add_option(menu, 0, name='Show hello', key='2', action=lambda:self.set_message('Hello!'))
+        menu = self.add_option(menu, 0, name='Login', key='1', action=lambda:self.set_menu(lambda:self.start_menu(username=username,password=password,input_request='username')))
+
         
         menu = self.add_field(menu, title='', text='')
-        menu = self.add_option(menu, 1, name='Quit', key='q', action=lambda:self.previous_menu())
+        menu = self.add_option(menu, 1, name='Quit', key='q', action=lambda:self.set_menu('STOP_SIGNAL'))
+
+        menu['input']['username'] = username
+
+        if input_request == 'username':
+            menu['input']['input_text'] = 'Username:\n'
+            menu['input']['input_type'] = 'text'
+            menu['input']['input_request'] = 'username'
+        elif input_request == 'password':
+            menu['input']['input_text'] = 'Password:\n'
+            menu['input']['input_type'] = 'secret'
+            menu['input']['input_request'] = 'password'
+
+        return menu
+
+    def dashboard_menu(self, menu=None):
+        menu = self.add_field(menu, title='Dashboard', text='Welcome in the dashboard '+ data.get_user(auth.session)['first_name'] + ' ' + data.get_user(auth.session)['last_name'])
+        menu = self.add_option(menu, 0, name='Dev menu', key='1', action=lambda:self.set_menu(lambda:self.dev_menu()))
+        
+        menu = self.add_field(menu, title='', text='')
+        menu = self.add_option(menu, 1, name='Logout', key='l', action=lambda:[auth.logout(),self.set_menu(lambda:self.start_menu())])
+
         return menu
 
     # Menu devloppeur
-    def dev_menu(self, menu={}):
+    def dev_menu(self, menu=None):
         menu = self.add_field(menu, title='Dev menu', text='')
         menu = self.add_option(menu, 0, name='Show all users', key='1', action=lambda:self.set_menu(lambda:self.user_list_menu()))
 
         menu = self.add_field(menu, title='', text='')
         menu = self.add_option(menu, 1, name='Back', key='b', action=lambda:self.previous_menu())
+
         return menu
 
     # Menu de liste d'utilisateurs
-    def user_list_menu(self, menu={}, users = {}):
+    def user_list_menu(self, menu=None, users = {}):
         users = data.get_user_list()
 
         if users != {}:
@@ -150,10 +209,11 @@ class Console:
 
         menu = self.add_field(menu, title='', text='')
         menu = self.add_option(menu, 1, name='Back', key='b', action=lambda:self.previous_menu())
+
         return menu
 
     # Menu d'utilisateur
-    def user_menu(self, user_id, menu={}):
+    def user_menu(self, user_id, menu=None):
         user = data.get_user(user_id)
         menu = self.add_field(menu, title=user['first_name']+' '+user['last_name'], text="ID: "+str(user['id']))
 
@@ -162,7 +222,7 @@ class Console:
         return menu
 
     # Menu de confirmation
-    def confirmation_menu(self, menu={}, title='',field_title='',field_text='',yes_action=['y','yes',[]],no_action=['n','no',[]]):
+    def confirmation_menu(self, menu=None, title='',field_title='',field_text='',yes_action=['y','yes',[]],no_action=['n','no',[]]):
         if no_action[2] == []:
             no_action[2] = lambda: self.previous_menu()
         if yes_action[2] == []:

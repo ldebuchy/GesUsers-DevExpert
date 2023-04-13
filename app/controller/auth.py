@@ -25,6 +25,3 @@ def login(user_name, password):
 def logout():
     global session
     session = None
-
-print(login("ldebuchy", "123456"))
-print(session)
