@@ -3,6 +3,7 @@
 
 import os
 import sys
+import hashlib
 sys.path.insert(1, f'{os.path.dirname(__file__)}/../../app')
 from model.user import *
 
@@ -15,10 +16,14 @@ def login(user_name, password):
     users = import_users()
     for user in users:
         if users[user].user_name == user_name:
-            if users[user].password == password:
+            if users[user].password == hash_password(password):
                 session = users[user].id
                 return [True, True]
             else:
+                users[user].login_attempts += 1  
+                if users[user].login_attempts >= 3:  
+                    users[user].suspended = True  
+                export_users(users)
                 return [True, False]
     return [False, False]
 

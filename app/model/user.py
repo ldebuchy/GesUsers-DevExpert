@@ -6,9 +6,14 @@ import sys
 from random import randint
 
 import pickle
-
+import hashlib
 sys.path.insert(1, f'{os.path.dirname(__file__)}/../../data')
 
+#fonction de hash pour mdp
+def hash_password(password):
+    salt="chaine aleatoire"
+    hashed_password=hashlib.sha256((password+salt).encode()).hexdigest() #sha256() s'attend a recevoir des bytes alors on  utilise encode() qui permet de convertir le string en bytes
+    return hashed_password                                              # on utilise ensuite hexidigest qui permet de convertir le binaire en hexadecimal
 
 # export des données dans le fichier users.pickl
 def export_users(data):
@@ -21,16 +26,17 @@ def import_users():
         return pickle.load(file)
 
 class User():
-    def __init__(self, first_name, last_name, password, role=[]):
+    def __init__(self, first_name, last_name, password, role=[],):
         self.id = randint(100, 999)
         while self.id in import_users():
             self.id = randint(100, 999)
         self.user_name = first_name[0] + last_name
-        self.password = password
+        self.password = hash_password(password)
         self.first_name = first_name
         self.last_name = last_name
         self.suspended = False
         self.role = role
+        self.login_attempts=0
 
     def get(self, var):
         if var =="user_name":
