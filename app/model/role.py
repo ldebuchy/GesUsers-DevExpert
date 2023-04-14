@@ -20,7 +20,7 @@ def import_roles():
         return pickle.load(file)
 
 class Role():
-    def __init__(self, name, priority, permissions=[]):
+    def __init__(self, name, priority):
         # Trouve un id unique au role
         self.id = randint(100, 999)
         while self.id in import_roles():
@@ -33,30 +33,43 @@ class Role():
         ### Liste des permissions du role ###
 
         # permissions d'outrepasser toutes restrictions (à utiliser avec précaution)
-        self.administrator = "administrator" in permissions
+        self.administrator = False
 
         # permission de crée, gérer et supprimer des roles
-        self.manage_roles = "manage_roles" in permissions  # *
+        self.manage_roles = False  # *
 
         # permissions de gérer les comptes
-        self.creat_delete_user = "create_delete_user" in permissions
-        self.edit_user_names = "edit_user_names" in permissions  # *
-        self.reset_passwords = "reset_passwords" in permissions  # *
-        self.edit_names = "edit_names" in permissions  # *
-        self.suspended = "suspended" in permissions  # *
+        self.creat_delete_user = False
+        self.edit_user_names = False  # *
+        self.reset_passwords = False  # *
+        self.edit_names = False  # *
+        self.suspended = False  # *
 
         # permissions pour gérer les documents
-        self.creat_delete_documents = "create_delete_documents" in permissions
-        self.read_documents = "read_documents" in permissions
-        self.edit_documents = "edit_documents" in permissions
+        self.creat_delete_documents = False
+        self.read_documents = False
+        self.edit_documents = False
 
         # permissions de modifier son compte
-        self.edit_account = "edit_account" in permissions
+        self.edit_account = False
 
         '''
         précision sur les permissions:
         #* = Effectife uniquement si la priorité du role est structement supérieur au role ou role de l'utilisateur ciblé
         '''
+
+def edit_role(role_id, name="", priority=-1, permissions=[]):
+    roles = import_roles()
+    try:
+        if name != "":
+            roles[role_id].name = name
+        if priority != "":
+            roles[role_id].priority = priority
+        if permissions != []:
+            roles[role_id].permissions = permissions
+        export_roles(roles)
+    except KeyError:
+        return "Error: Role does not exist."
 
 def create_role(name, priority, permissions):
     new_role = Role(name, priority, permissions)
@@ -71,9 +84,3 @@ def delete_role(role_id):
         export_roles(roles)
     except KeyError:
         return "Error: Role does not exist."
-
-# admin = Role("admin", 0, ["administrator"])
-# hrm = Role("hrm", 20, ["manage_roles", "create_delete_user", "edit_user_names", "reset_passwords", "edit_names", "suspended", "create_delete_documents", "read_documents", "edit_documents", "edit_account"])
-# team_leader = Role("manager", 40, ["edit_user_names", "reset_passwords", "edit_names", "create_delete_documents", "read_documents", "edit_documents", "edit_account"])
-# employee = Role("employee", 80, ["create_delete_documents", "read_documents", "edit_documents", "edit_account"])
-# internship = Role("internship", 90, ["read_documents"])

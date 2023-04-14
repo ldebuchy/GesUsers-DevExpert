@@ -29,5 +29,9 @@ def convert_user_to_dict(user):
         "first_name": user.first_name,
         "last_name": user.last_name,
         "suspended": user.suspended,
+        "login_attempts": user.login_attempts,
         "role": user.role
     }
+
+def get_role_list():
+    pass

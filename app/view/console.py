@@ -8,6 +8,7 @@ sys.path.insert(1, f'{os.path.dirname(__file__)}/../../app')
 
 import view.display as display
 import controller.data_reader as data
+import controller.data_writer as data_edit
 from controller.auth import *
 import controller.auth as auth
 
@@ -31,7 +32,6 @@ class Console:
             self.menu_path.append(menu)
         menu_data = self.menu_path[-1]()
         display.show_menu(menu_data, msg)
-        
 
         input_type = menu_data['input']['input_type']
 
@@ -44,7 +44,7 @@ class Console:
 
         submitted_input = self.request_input(type=input_type, msg=menu_data['input']['input_text'])
         if input_type == "choice" and not submitted_input.lower() in valid_input:
-            self.set_message(f'{display.md.RED}Invalid choice, please try again.')
+            self.set_message(f'{display.md.YELLOW}Invalid choice, please try again.')
             return
         
         if input_type == "choice":
@@ -63,17 +63,23 @@ class Console:
                     self.set_menu(lambda:self.dashboard_menu(),msg=f'{display.md.GREEN}Login successful!')
                     return
                 elif login_okay[0] and not login_okay[1]:
-                    self.set_menu(lambda:self.start_menu(), msg=f'{display.md.RED}Wrong password, please try again.')
-                    return
+                    if data.get_user(login_okay[2])['suspended']:
+                        self.set_menu(lambda:self.start_menu(), msg=f'{display.md.RED}User suspended, please contact an administrator.')
+                        return
+                    else:
+                        self.set_menu(lambda:self.start_menu(), msg=f'{display.md.RED}Incorrect password, please try again.')
+                        return
                 elif login_okay[0] == False:
                     self.set_menu(lambda:self.start_menu(), msg=f'{display.md.RED}User not found, please try again.')
                     return
                 else:
                     self.set_menu(lambda:self.start_menu(), msg=f'{display.md.RED}Unknown error, please try again.')
                 return
+
             else:
-                self.set_message(f'{display.md.RED}Invalid choice, please try again.')
+                self.set_message(f'{display.md.YELLO}Invalid choice, please try again.')
                 return
+                
 
     # Retourner au menu précédent
     def previous_menu(self):
@@ -173,6 +179,7 @@ class Console:
             menu['input']['input_type'] = 'secret'
             menu['input']['input_request'] = 'password'
 
+
         return menu
 
     def dashboard_menu(self, menu=None):
@@ -200,25 +207,62 @@ class Console:
 
         if users != {}:
             menu = self.add_field(menu, title='User list', text='')
+            menu = self.add_option(menu, 0, name='Search', key='s')
+            menu = self.add_field(menu, title='', text='')
             key_index = 1
             for user_id, user_data in users.items():
-                menu = self.add_option(menu, 0, name=user_data['first_name'] + ' ' + user_data['last_name'], key=str(key_index), action=lambda user_id=user_id: self.set_menu(lambda: self.user_menu(user_id)))
+                if user_data['suspended']:
+                    menu = self.add_option(menu, 1, name=user_data['first_name'] + ' ' + user_data['last_name'] + f"{display.md.END} {display.md.YELLOW}(Suspended)", key=str(key_index), action=lambda user_id=user_id: self.set_menu(lambda: self.user_menu(user_id)))
+                else:
+                    menu = self.add_option(menu, 1, name=user_data['first_name'] + ' ' + user_data['last_name'], key=str(key_index), action=lambda user_id=user_id: self.set_menu(lambda: self.user_menu(user_id)))
                 key_index += 1
         else:
             menu = self.add_field(menu, title='User list', text='No user found.')
 
         menu = self.add_field(menu, title='', text='')
-        menu = self.add_option(menu, 1, name='Back', key='b', action=lambda:self.previous_menu())
+        menu = self.add_option(menu, 2, name='Back', key='b', action=lambda:self.previous_menu())
+        return menu
+    
+    def role_list_menu(self, menu=None, roles = {}):
+        roles = data.get_role_list()
 
+        if roles != {}:
+            menu = self.add_field(menu, title='Role list', text='')
+            key_index = 1
+            for role_id, role_data in roles.items():
+                menu = self.add_option(menu, 0, name=role_data['name'], key=str(key_index), action=lambda role_id=role_id: self.set_menu(lambda: self.user_menu(role_id)))
+                key_index += 1
+        else:
+            menu = self.add_field(menu, title='Role list', text='No role found.')
+
+        menu = self.add_field(menu, title='', text='')
+        menu = self.add_option(menu, 1, name='Back', key='b', action=lambda:self.previous_menu())
         return menu
 
     # Menu d'utilisateur
     def user_menu(self, user_id, menu=None):
         user = data.get_user(user_id)
-        menu = self.add_field(menu, title=user['first_name']+' '+user['last_name'], text="ID: "+str(user['id']))
+
+        if user['suspended']:
+            menu = self.add_field(menu, title=user['first_name']+' '+user['last_name'] + f"{display.md.END} {display.md.YELLOW}(Suspended)", text="ID: "+str(user['id']))
+            menu = self.add_field(menu, title='', text='')
+        else:
+            menu = self.add_field(menu, title=user['first_name']+' '+user['last_name'], text="ID: "+str(user['id']))
+            menu = self.add_field(menu, title='', text='')
+
+        menu = self.add_option(menu, 1, name='change first and last name', key='1', action=lambda:self.previous_menu())
+        menu = self.add_option(menu, 1, name='change first and last name', key='1', action=lambda:self.previous_menu())
+        menu = self.add_option(menu, 1, name='change the user name', key='2', action=lambda:self.previous_menu())
+        menu = self.add_option(menu, 1, name='reset password', key='3', action=lambda:self.previous_menu())
+        menu = self.add_option(menu, 1, name='change roles', key='4', action=lambda:self.previous_menu())
+        if user['suspended']:
+            menu = self.add_option(menu, 1, name='reactivate account', key='5', action=lambda:[data_edit.reactivate_user(user['id']), self.set_message(f'{display.md.GREEN}User reactivated.')])
+        else:
+            menu = self.add_option(menu, 1, name='suspend account', key='5', action=lambda:[data_edit.suspend_user(user['id']), self.set_message(f'{display.md.RED}User suspended.')])
+
 
         menu = self.add_field(menu, title='', text='')
-        menu = self.add_option(menu, 1, name='Back', key='b', action=lambda:self.previous_menu())
+        menu = self.add_option(menu, 2, name='Back', key='b', action=lambda:self.previous_menu())
         return menu
 
     # Menu de confirmation
