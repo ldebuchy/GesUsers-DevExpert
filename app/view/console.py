@@ -7,8 +7,7 @@ import sys
 sys.path.insert(1, f'{os.path.dirname(__file__)}/../../app')
 
 import view.display as display
-import controller.data_reader as data
-import controller.data_writer as data_edit
+import controller.data as data
 from controller.auth import *
 import controller.auth as auth
 
@@ -50,9 +49,26 @@ class Console:
         if input_type == "choice":
             self.interpret_choice(menu_data, submitted_input)
             return
-        print(self.menu_path)
 
         # Actions personnalisées pour les menus
+        if menu_data['fields'][0]['title'] == 'Create user':
+            if menu_data['input']['input_request'] == 'firstname':
+                self.set_menu(lambda:self.create_user_menu(firstname=submitted_input,input_request='lastname'))
+                return
+            elif menu_data['input']['input_request'] == 'lastname':
+                self.set_menu(lambda:self.create_user_menu(firstname=menu_data['input']['firstname'],lastname=submitted_input,input_request='password'))
+                return
+            elif menu_data['input']['input_request'] == 'password':
+                new_user = data.u.User()
+                new_user.first_name = menu_data['input']['firstname']
+                new_user.last_name = menu_data['input']['lastname']
+                new_user.set_password(submitted_input)
+                new_user.generate_id()
+                new_user.generate_username()
+                new_user.save()
+                self.set_menu(lambda:self.user_list_menu,msg=f'{display.md.GREEN} User created successfully! {display.md.RESET} Username: {new_user.user_name} Password: {submitted_input}')
+                return
+
         if menu_data['fields'][0]['title'] == 'Welcome':
             if menu_data['input']['input_request'] == 'username':
                 self.set_menu(lambda:self.start_menu(username=submitted_input,input_request='password'))
@@ -178,26 +194,15 @@ class Console:
             menu['input']['input_text'] = 'Password:\n'
             menu['input']['input_type'] = 'secret'
             menu['input']['input_request'] = 'password'
-
-
         return menu
 
     def dashboard_menu(self, menu=None):
         menu = self.add_field(menu, title='Dashboard', text='Welcome in the dashboard '+ data.get_user(auth.session)['first_name'] + ' ' + data.get_user(auth.session)['last_name'])
-        menu = self.add_option(menu, 0, name='Dev menu', key='1', action=lambda:self.set_menu(lambda:self.dev_menu()))
+        menu = self.add_option(menu, 0, name='Show all users', key='1', action=lambda:self.set_menu(lambda:self.user_list_menu()))
+        menu = self.add_option(menu, 0, name='Browse documents', key='2', action=lambda:self.set_menu(lambda:self.document_list_menu()))
         
         menu = self.add_field(menu, title='', text='')
         menu = self.add_option(menu, 1, name='Logout', key='l', action=lambda:[auth.logout(),self.set_menu(lambda:self.start_menu())])
-
-        return menu
-
-    # Menu devloppeur
-    def dev_menu(self, menu=None):
-        menu = self.add_field(menu, title='Dev menu', text='')
-        menu = self.add_option(menu, 0, name='Show all users', key='1', action=lambda:self.set_menu(lambda:self.user_list_menu()))
-
-        menu = self.add_field(menu, title='', text='')
-        menu = self.add_option(menu, 1, name='Back', key='b', action=lambda:self.previous_menu())
 
         return menu
 
@@ -208,11 +213,12 @@ class Console:
         if users != {}:
             menu = self.add_field(menu, title='User list', text='')
             menu = self.add_option(menu, 0, name='Search', key='s')
+            menu = self.add_option(menu, 0, name='Create', key='c', action=lambda:self.set_menu(lambda:self.user_create_menu()))
             menu = self.add_field(menu, title='', text='')
             key_index = 1
             for user_id, user_data in users.items():
                 if user_data['suspended']:
-                    menu = self.add_option(menu, 1, name=user_data['first_name'] + ' ' + user_data['last_name'] + f"{display.md.END} {display.md.YELLOW}(Suspended)", key=str(key_index), action=lambda user_id=user_id: self.set_menu(lambda: self.user_menu(user_id)))
+                    menu = self.add_option(menu, 1, name=user_data['first_name'] + ' ' + user_data['last_name'] + f"{display.md.END} {display.md.RED}[Suspended]", key=str(key_index), action=lambda user_id=user_id: self.set_menu(lambda: self.user_menu(user_id)))
                 else:
                     menu = self.add_option(menu, 1, name=user_data['first_name'] + ' ' + user_data['last_name'], key=str(key_index), action=lambda user_id=user_id: self.set_menu(lambda: self.user_menu(user_id)))
                 key_index += 1
@@ -222,7 +228,7 @@ class Console:
         menu = self.add_field(menu, title='', text='')
         menu = self.add_option(menu, 2, name='Back', key='b', action=lambda:self.previous_menu())
         return menu
-    
+
     def role_list_menu(self, menu=None, roles = {}):
         roles = data.get_role_list()
 
@@ -244,22 +250,21 @@ class Console:
         user = data.get_user(user_id)
 
         if user['suspended']:
-            menu = self.add_field(menu, title=user['first_name']+' '+user['last_name'] + f"{display.md.END} {display.md.YELLOW}(Suspended)", text="ID: "+str(user['id']))
+            menu = self.add_field(menu, title=user['first_name']+' '+user['last_name'] + f"{display.md.END} {display.md.RED}[Suspended]", text="ID: "+str(user['id']))
             menu = self.add_field(menu, title='', text='')
         else:
             menu = self.add_field(menu, title=user['first_name']+' '+user['last_name'], text="ID: "+str(user['id']))
             menu = self.add_field(menu, title='', text='')
 
         menu = self.add_option(menu, 1, name='change first and last name', key='1', action=lambda:self.previous_menu())
-        menu = self.add_option(menu, 1, name='change first and last name', key='1', action=lambda:self.previous_menu())
         menu = self.add_option(menu, 1, name='change the user name', key='2', action=lambda:self.previous_menu())
         menu = self.add_option(menu, 1, name='reset password', key='3', action=lambda:self.previous_menu())
         menu = self.add_option(menu, 1, name='change roles', key='4', action=lambda:self.previous_menu())
         if user['suspended']:
-            menu = self.add_option(menu, 1, name='reactivate account', key='5', action=lambda:[data_edit.reactivate_user(user['id']), self.set_message(f'{display.md.GREEN}User reactivated.')])
+            menu = self.add_option(menu, 1, name='unsuspend account', key='5', action=lambda:[user.reactivate(), self.set_message(f'{display.md.GREEN}User reactivated.')])
         else:
-            menu = self.add_option(menu, 1, name='suspend account', key='5', action=lambda:[data_edit.suspend_user(user['id']), self.set_message(f'{display.md.RED}User suspended.')])
-
+            menu = self.add_option(menu, 1, name='suspend account', key='5', action=lambda:[data.u.import_users()[user_id].suspend() , self.set_message(f'{display.md.GREEN}User suspended.')])
+        menu = self.add_option(menu, 1, name='delete account', key='6', action=lambda:self.previous_menu())
 
         menu = self.add_field(menu, title='', text='')
         menu = self.add_option(menu, 2, name='Back', key='b', action=lambda:self.previous_menu())
@@ -274,4 +279,38 @@ class Console:
         menu = self.add_field(menu, title=field_title, text=field_text)
         menu = self.add_option(menu, 0, name=yes_action[1], key=yes_action[0], action=yes_action[2])
         menu = self.add_option(menu, 0, name=no_action[1], key=no_action[0], action=no_action[2])
+        return menu
+    
+    def delete_user_menu(self, user_id, menu=None):
+        user = data.get_user(user_id)
+        menu = self.add_field(menu, title='Delete user', text='')
+        menu = self.add_field(menu, title='Are you sure you want to delete this user?', text='')
+        menu = self.add_option(menu, 1, name='Yes', key='y', action=lambda:[data.u.import_users()[user_id].delete(), self.set_message(f'{display.md.GREEN}User deleted.'), self.previous_menu()])
+        menu = self.add_option(menu, 1, name='No', key='n', action=lambda:self.previous_menu())
+        return menu
+    
+    def user_create_menu(self, menu=None, firstname='', lastname='', password='', input_request='username'):
+        menu = self.add_field(menu, title='Create user', text='')
+        menu = self.add_option(menu, 0, name='First name:'+ firstname, key='1', action=lambda:self.set_menu(lambda:self.user_create_menu(firstname=firstname, lastname=lastname, password=password,input_request='firstname')))
+        menu = self.add_option(menu, 0, name='Last name:' + lastname, key='2', action=lambda:self.set_menu(lambda:self.user_create_menu(firstname=firstname, lastname=lastname, password=password,input_request='lastname')))
+        menu = self.add_option(menu, 0, name='Password:' + password, key='3', action=lambda:self.set_menu(lambda:self.user_create_menu(firstname=firstname, lastname=lastname, password=password,input_request='password')))
+
+        menu = self.add_field(menu, title='', text='')
+        menu = self.add_option(menu, 1, name='Create', key='c', action=lambda:self.previous_menu())
+        menu = self.add_option(menu, 1, name='Back', key='b', action=lambda:self.previous_menu())
+
+        menu['input']['input_text'] = 'Fill in the form:\n'
+
+        if input_request == 'firstname':
+            menu['input']['input_text'] = 'First name:\n'
+            menu['input']['input_type'] = 'text'
+            menu['input']['input_request'] = 'firstname'
+        elif input_request == 'lastname':
+            menu['input']['input_text'] = 'Last name:\n'
+            menu['input']['input_type'] = 'text'
+            menu['input']['input_request'] = 'lastname'
+        elif input_request == 'password':
+            menu['input']['input_text'] = 'Password:\n'
+            menu['input']['input_type'] = 'password'
+            menu['input']['input_request'] = 'password'
         return menu

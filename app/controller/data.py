@@ -4,16 +4,16 @@
 import os
 import sys
 sys.path.insert(1, f'{os.path.dirname(__file__)}/../../app')
-import model.user as udata
-import model.role as rdata
+import model.user as u
+import model.role as r
 
 # Fonction qui retourne un dictionnaire contenant les informations d'un utilisateur
 def get_user(id):
-    return convert_user_to_dict(udata.import_users()[id])
+    return convert_user_to_dict(u.import_users()[id])
 
 # Fonction qui retourne un dictionnaire contenant tous les utilisateurs et leurs informations
 def get_user_list():
-    users = udata.import_users()
+    users = u.import_users()
     user_list = {}
 
     for user in users:
