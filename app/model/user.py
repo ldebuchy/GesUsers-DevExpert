@@ -9,17 +9,7 @@ import pickle
 import hashlib
 sys.path.insert(1, f'{os.path.dirname(__file__)}/../../data')
 
-super_admin_id = 490
-
-# export des données dans le fichier users.pickle
-def export_users(data):
-    with open("data/users.pickle", "wb") as file:
-        pickle.dump(data, file)
-
-# import des données depuis le fichier users.pickle
-def import_users():
-    with open("data/users.pickle", "rb") as file:
-        return pickle.load(file)
+super_admin_id = 853
 
 class User():
     def __init__(self):
@@ -75,17 +65,19 @@ class User():
         self.save()
 
     def suspend(self):
-        self.suspended = True
-        self.save()
+        if self.id != super_admin_id:
+            self.suspended = True
+            self.save()
 
     def unsuspend(self):
         self.suspended = False
         self.save()
 
     def delete(self):
-        users = import_users()
-        del users[self.id]
-        export_users(users)
+        if self.id != super_admin_id:
+            users = import_users()
+            del users[self.id]
+            export_users(users)
 
     #fonction de hash pour mdp
     def hash_password(self, password):
@@ -95,13 +87,13 @@ class User():
     
     def check_password(self, password):
         return self.password == self.hash_password(password)
-    
-def create_user(first_name, last_name, password):
-    user = User()
-    user.generate_id()
-    user.edit_first_name(first_name)
-    user.edit_last_name(last_name)
-    user.generate_username()
-    user.set_password(password)
-    user.save()
-    return user
+
+# export des données dans le fichier users.pickle
+def export_users(data):
+    with open("data/users.pickle", "wb") as file:
+        pickle.dump(data, file)
+
+# import des données depuis le fichier users.pickle
+def import_users():
+    with open("data/users.pickle", "rb") as file:
+        return pickle.load(file)

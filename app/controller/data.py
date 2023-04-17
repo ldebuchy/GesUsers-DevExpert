@@ -5,7 +5,6 @@ import os
 import sys
 sys.path.insert(1, f'{os.path.dirname(__file__)}/../../app')
 import model.user as u
-import model.role as r
 
 # Fonction qui retourne un dictionnaire contenant les informations d'un utilisateur
 def get_user(id):
@@ -33,5 +32,10 @@ def convert_user_to_dict(user):
         "role": user.role
     }
 
-def get_role_list():
-    pass
+def search_user(search):
+    users=u.import_users()
+    user_list = {}
+    for user in users:
+        if users[user].first_name in search or users[user].last_name in search or users[user].user_name in search or str(users[user].id) in search:
+            user_list.update({users[user].id: convert_user_to_dict(users[user])})    
+    return user_list
