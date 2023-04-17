@@ -4,7 +4,7 @@
 import os
 import sys
 sys.path.insert(1, f'{os.path.dirname(__file__)}/../../app')
-import model.user as u
+import model.user as u # importe les fonctions de gestion de l'utilisateur
 
 # Fonction qui retourne un dictionnaire contenant les informations d'un utilisateur
 def get_user(id):
@@ -32,6 +32,7 @@ def convert_user_to_dict(user):
         "role": user.role
     }
 
+# Fonction qui retourne un dictionnaire contenant les informations d'un utilisateur recherché
 def search_user(search):
     users=u.import_users()
     user_list = {}

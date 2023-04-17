@@ -3,10 +3,8 @@
 
 import os
 import sys
-from random import randint
-
 import pickle
-
+from random import randint
 sys.path.insert(1, f'{os.path.dirname(__file__)}/../../data')
 
 # export des données dans le fichier roles.pickl
@@ -58,6 +56,9 @@ class Role():
         #* = Effectife uniquement si la priorité du role est structement supérieur au role ou role de l'utilisateur ciblé
         '''
 
+# Fonctions de gestion des roles
+
+# modifie un role
 def edit_role(role_id, name="", priority=-1, permissions=[]):
     roles = import_roles()
     try:
@@ -71,12 +72,14 @@ def edit_role(role_id, name="", priority=-1, permissions=[]):
     except KeyError:
         return "Error: Role does not exist."
 
+# Crée un nouveau role
 def create_role(name, priority, permissions):
     new_role = Role(name, priority, permissions)
     roles = import_roles()
     roles.update({new_role.id: new_role})
     export_roles(roles)
 
+# Supprime un role
 def delete_role(role_id):
     roles = import_roles()
     try:

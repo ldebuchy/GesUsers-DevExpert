@@ -7,8 +7,9 @@ import hashlib
 sys.path.insert(1, f'{os.path.dirname(__file__)}/../../app')
 from model.user import *
 
-session = None
+session = None # Variable qui contient l'id de l'utilisateur connecté
 
+# Fonction qui connecte un utilisateur
 def login(user_name, password):
     global session
     users = import_users()
@@ -28,6 +29,7 @@ def login(user_name, password):
             
     return [False, False, None]
 
+# Fonction qui déconnecte un utilisateur
 def logout():
     global session
     session = None

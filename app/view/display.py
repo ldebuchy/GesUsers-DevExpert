@@ -6,6 +6,7 @@ import msvcrt
 
 display_width = 60
 
+# Affiche le menu
 def show_menu(menu,msg=""):
     os.system("cls")
     print(f"\n--- {md.BOLD}" + menu['title'].upper() + f"{md.END} " + "-"*(display_width-8-len(menu['title'].upper())) + "---")
@@ -32,10 +33,12 @@ def show_menu(menu,msg=""):
     else:
         print("")
 
+# Retourne le texte saisi par l'utilisateur
 def text_input(msg=""):
     print(msg, end="", flush=True)
     return input()
 
+# Retourne instantanément le nombre ou la lettre saisi par l'utilisateur
 def choice_input(msg=""):
     print(msg, end="", flush=True)
     try:
@@ -44,6 +47,7 @@ def choice_input(msg=""):
     except:
         return ""
 
+# Retourne le mot de passe saisi par l'utilisateur sans l'afficher
 def secret_input(msg=""):
     print(msg, end="", flush=True)  # affiche le message sans saut de ligne
     hidden_input = ""
@@ -60,24 +64,7 @@ def secret_input(msg=""):
             hidden_input += key.decode()  # ajoute le caractère saisi au mot de passe
             print('*', end='', flush=True)  # affiche un astérisque
 
-
-def dprint(string, offset=0, width=0):
-    words = string.split(' ')
-    result = []
-    current = ''
-    for word in words:
-        if len(current) + len(word) + 1 <= width:
-            if current == '':
-                current = word
-            else:
-                current += ' ' + word
-        else:
-            result.append(current)
-            current = word
-    result.append(current)
-    for line in result:
-        print(" "*offset+line)
-
+# utilisation de la classe md pour afficher du texte en couleur
 class md:
     PURPLE = '\033[95m'
     BLUE = '\033[94m'
